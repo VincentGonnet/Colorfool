@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'dart:io' show Platform;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +49,26 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  Future<FirebaseApp> _initializeFirebase() {
+    late Future<FirebaseApp> firebaseApp;
+    if (Platform.isWindows) {
+      print("Loaded on Windows");
+      firebaseApp = Firebase.initializeApp(
+          options: const FirebaseOptions(
+            apiKey: 'AIzaSyAGCQOM5y0sdl3LNKmCqejYQBHniV4JH3U',
+            appId: '1:331560952012:android:a98d2f37f46a0b24cf6269',
+            messagingSenderId: '331560952012',
+            projectId: 'colorfool',
+          ),
+      );
+    } else {
+      print("Loaded elsewhere");
+      firebaseApp = Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+
+    return firebaseApp;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,9 +76,7 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Register"),
       ),
       body: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
+        future: _initializeFirebase(),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
