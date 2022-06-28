@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "331560952012",
+    "project_id": "colorfool",
+    "storage_bucket": "colorfool.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:331560952012:android:a98d2f37f46a0b24cf6269",
+        "android_client_info": {
+          "package_name": "com.vgonnet.colorfool.colorfool"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "331560952012-u9fgffnucml1mmof5n1ocnpd1tbdnqmn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGCQOM5y0sdl3LNKmCqejYQBHniV4JH3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "331560952012-u9fgffnucml1mmof5n1ocnpd1tbdnqmn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
