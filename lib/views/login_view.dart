@@ -1,9 +1,5 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth_desktop/firebase_auth_desktop.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../firebase_options.dart';
-import 'dart:io' show Platform;
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -30,24 +26,6 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  Future<FirebaseApp> _initializeFirebase() {
-    late Future<FirebaseApp> firebaseApp;
-    if (Platform.isWindows) {
-      firebaseApp = Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: 'AIzaSyAGCQOM5y0sdl3LNKmCqejYQBHniV4JH3U',
-          appId: '1:331560952012:android:a98d2f37f46a0b24cf6269',
-          messagingSenderId: '331560952012',
-          projectId: 'colorfool',
-        ),
-      );
-    } else {
-      firebaseApp = Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    }
-
-    return firebaseApp;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,19 +46,16 @@ class _LoginViewState extends State<LoginView> {
             obscureText: true,
             enableSuggestions: false,
             autocorrect: false,
-            decoration: const InputDecoration(
-                hintText: 'Enter your password here.'
-            ),
+            decoration:
+                const InputDecoration(hintText: 'Enter your password here.'),
           ),
           TextButton(
             onPressed: () async {
               final email = _email.text;
               final password = _password.text;
               try {
-                final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-                    email: email,
-                    password: password
-                );
+                final userCredential = await FirebaseAuth.instance
+                    .signInWithEmailAndPassword(email: email, password: password);
                 print(userCredential);
               } on FirebaseAuthException catch (error) {
                 if (error.code == "user-not-found") {
@@ -98,8 +73,14 @@ class _LoginViewState extends State<LoginView> {
             },
             child: const Text("Login"),
           ),
+          TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('/register/', (route) => false);
+              },
+              child: const Text("Not registered yet? Register here!")),
         ],
-      )
+      ),
     );
   }
 }
