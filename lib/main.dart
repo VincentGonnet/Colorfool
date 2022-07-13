@@ -5,6 +5,7 @@ import 'package:colorfool/views/register_view.dart';
 import 'package:colorfool/views/verify_email_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
@@ -38,19 +39,25 @@ class HomePage extends StatelessWidget {
 
   Future<FirebaseApp> _initializeFirebase() {
     late Future<FirebaseApp> firebaseApp;
-    if (Platform.isWindows) {
-      firebaseApp = Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: 'AIzaSyAGCQOM5y0sdl3LNKmCqejYQBHniV4JH3U',
-          appId: '1:331560952012:android:a98d2f37f46a0b24cf6269',
-          messagingSenderId: '331560952012',
-          projectId: 'colorfool',
-        ),
-      );
+    if (!kIsWeb) {
+      if (Platform.isWindows) {
+        firebaseApp = Firebase.initializeApp(
+          options: const FirebaseOptions(
+            apiKey: 'AIzaSyAGCQOM5y0sdl3LNKmCqejYQBHniV4JH3U',
+            appId: '1:331560952012:android:a98d2f37f46a0b24cf6269',
+            messagingSenderId: '331560952012',
+            projectId: 'colorfool',
+          ),
+        );
+      } else {
+        firebaseApp = Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform);
+      }
     } else {
       firebaseApp = Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);
     }
+
 
     return firebaseApp;
   }
@@ -64,11 +71,12 @@ class HomePage extends StatelessWidget {
             case ConnectionState.done:
               final user = FirebaseAuth.instance.currentUser;
               if (user != null) {
-                if (user.emailVerified) {
+                /* if (user.emailVerified) {
                   print("Email verified");
                 } else {
+                  print(user);
                   return const VerifyEmailView();
-                }
+                } */
               } else {
                 return const LoginView();
               }
