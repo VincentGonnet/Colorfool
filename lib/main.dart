@@ -108,7 +108,12 @@ class _ColorsViewState extends State<ColorsView> {
             switch(value) {
               case MenuAction.logout:
                 final shouldLogout = await showLogOutDialog(context);
-                devtools.log(shouldLogout.toString());
+                if (shouldLogout) {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login/', (route) => false);
+                } else {
+                  return;
+                }
                 break;
             }
           }, itemBuilder: (context) {
