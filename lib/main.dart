@@ -29,9 +29,10 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomePage(),
       routes: {
-        '/login/': (context) => const LoginView(),
-        '/register/': (context) => const RegisterView(),
-        '/colors/': (context) => const ColorsView(),
+        loginRoute: (context) => const LoginView(),
+        registerRoute: (context) => const RegisterView(),
+        verifyEmailRoute: (context) => const VerifyEmailView(),
+        colorsRoute: (context) => const ColorsView(),
       },
     );
   }
@@ -44,7 +45,7 @@ class HomePage extends StatelessWidget {
     late Future<FirebaseApp> firebaseApp;
     if (!kIsWeb) {
       if (Platform.isWindows) {
-        firebaseApp = Firebase.initializeApp(
+        return Firebase.initializeApp(
           options: const FirebaseOptions(
             apiKey: 'AIzaSyAGCQOM5y0sdl3LNKmCqejYQBHniV4JH3U',
             appId: '1:331560952012:android:a98d2f37f46a0b24cf6269',
@@ -53,15 +54,14 @@ class HomePage extends StatelessWidget {
           ),
         );
       } else {
-        firebaseApp = Firebase.initializeApp(
+        return Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform);
       }
     } else {
-      firebaseApp = Firebase.initializeApp(
+      return Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);
     }
 
-    return firebaseApp;
   }
 
   @override
@@ -73,12 +73,12 @@ class HomePage extends StatelessWidget {
             case ConnectionState.done:
               final user = FirebaseAuth.instance.currentUser;
               if (user != null) {
-                /* if (user.emailVerified) {
+                if (user.emailVerified) {
                   print("Email verified");
                 } else {
                   print(user);
                   return const VerifyEmailView();
-                } */
+                }
               } else {
                 return const LoginView();
               }
