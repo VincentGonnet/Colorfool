@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:colorfool/constants/routes.dart';
 import 'package:colorfool/views/login_view.dart';
 import 'package:colorfool/views/register_view.dart';
 import 'package:colorfool/views/verify_email_view.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login/': (context) => const LoginView(),
         '/register/': (context) => const RegisterView(),
+        '/colors/': (context) => const ColorsView(),
       },
     );
   }
@@ -105,12 +107,15 @@ class _ColorsViewState extends State<ColorsView> {
         title: const Text("Your Colors"),
         actions: [
           PopupMenuButton<MenuAction>(onSelected: (value) async {
-            switch(value) {
+            switch (value) {
               case MenuAction.logout:
                 final shouldLogout = await showLogOutDialog(context);
                 if (shouldLogout) {
                   await FirebaseAuth.instance.signOut();
-                  Navigator.of(context).pushNamedAndRemoveUntil('/login/', (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    loginRoute,
+                    (route) => false,
+                  );
                 } else {
                   return;
                 }
