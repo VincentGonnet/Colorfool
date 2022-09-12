@@ -1,6 +1,7 @@
 import 'package:colorfool/constants/routes.dart';
+import 'package:colorfool/services/auth/auth_exceptions.dart';
+import 'package:colorfool/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer' as devtools show log;
 
 import '../utilities/show_error_dialog.dart';
@@ -61,24 +62,27 @@ class _LoginViewState extends State<LoginView> {
                 return await showErrorDialog(context, "Please specify an email and a password");
               }
               try {
-                final userCredential = await FirebaseAuth.instance
-                    .signInWithEmailAndPassword(
-                        email: email, password: password);
-                devtools.log(userCredential.toString());
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  colorsRoute,
-                  (route) => false,
-                );
-              } on FirebaseAuthException catch (error) {
-                if (error.code == "user-not-found") {
-                  await showErrorDialog(context, 'User not found');
-                } else if (error.code == "wrong-password") {
-                  await showErrorDialog(context, "Wrong password");
-                } else if (error.code == "invalid-email") {
-                  await showErrorDialog(context, "Invalid email");
+                await AuthService.firebase().logIn(email: email, password: password);
+                final user = AuthService.firebase().currentUser;
+                if (user?.isEmailVerified ?? false) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    colorsRoute,
+                        (route) => false,
+                  );
                 } else {
-                  await showErrorDialog(context, error.code);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    verifyEmailRoute,
+                        (route) => false,
+                  );
                 }
+              } on UserNotFoundAuthException {
+                await showErrorDialog(context, 'User not found');
+              } on WrongPasswordAuthException {
+                await showErrorDialog(context, 'Wrong password');
+              } on InvalidEmailAuthException {
+                await showErrorDialog(context, 'Invalid email');
+              } on GenericAuthException {
+                await showErrorDialog(context, 'Authentication error');
               } catch (error) {
                 devtools.log("--- ERROR ---");
                 devtools.log(error.runtimeType.toString());
