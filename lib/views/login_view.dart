@@ -38,6 +38,7 @@ class _LoginViewState extends State<LoginView> {
         title: const Text("Login"),
       ),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           TextField(
             controller: _email,
