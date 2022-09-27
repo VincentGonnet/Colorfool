@@ -1,8 +1,8 @@
 import 'package:colorfool/services/auth/auth_service.dart';
 import 'package:colorfool/services/crud/colors_service.dart';
 import 'package:flutter/material.dart';
-import '../constants/routes.dart';
-import '../enums/menu_action.dart';
+import '../../constants/routes.dart';
+import '../../enums/menu_action.dart';
 
 class ColorsView extends StatefulWidget {
   const ColorsView({Key? key}) : super(key: key);
@@ -34,6 +34,12 @@ class _ColorsViewState extends State<ColorsView> {
       appBar: AppBar(
         title: const Text("Your Colors"),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(newColorRoute);
+            },
+            icon: const Icon(Icons.add),
+          ),
           PopupMenuButton<MenuAction>(onSelected: (value) async {
             switch (value) {
               case MenuAction.logout:
@@ -42,7 +48,7 @@ class _ColorsViewState extends State<ColorsView> {
                   await AuthService.firebase().logOut();
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     loginRoute,
-                    (route) => false,
+                    (_) => false,
                   );
                 } else {
                   return;
