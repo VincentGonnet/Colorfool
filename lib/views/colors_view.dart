@@ -1,4 +1,5 @@
 import 'package:colorfool/services/auth/auth_service.dart';
+import 'package:colorfool/services/crud/colors_service.dart';
 import 'package:flutter/material.dart';
 import '../constants/routes.dart';
 import '../enums/menu_action.dart';
@@ -11,6 +12,22 @@ class ColorsView extends StatefulWidget {
 }
 
 class _ColorsViewState extends State<ColorsView> {
+  late final ColorsService _colorsService;
+  String get userEmail => AuthService.firebase().currentUser!.email!;
+
+  @override
+  void initState() {
+    _colorsService = ColorsService();
+    _colorsService.open();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _colorsService.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +42,7 @@ class _ColorsViewState extends State<ColorsView> {
                   await AuthService.firebase().logOut();
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     loginRoute,
-                        (route) => false,
+                    (route) => false,
                   );
                 } else {
                   return;
@@ -40,7 +57,27 @@ class _ColorsViewState extends State<ColorsView> {
           })
         ],
       ),
-      body: const Text("Hello World"),
+      body: FutureBuilder(
+        future: _colorsService.getOrCreateUser(email: userEmail),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              return StreamBuilder(
+                stream: _colorsService.allColors,
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return const Text("Waiting for all colors...");
+                    default:
+                      return const CircularProgressIndicator();
+                  }
+                },
+              );
+            default:
+              return const CircularProgressIndicator();
+          }
+        },
+      ),
     );
   }
 }

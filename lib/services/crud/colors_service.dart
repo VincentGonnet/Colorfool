@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:colorfool/services/crud/crud_exceptions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
@@ -8,8 +10,37 @@ import 'package:path/path.dart' show join;
 class ColorsService {
   Database? _db;
 
+  static final ColorsService _shared = ColorsService._sharedInstance();
+  ColorsService._sharedInstance();
+  factory ColorsService() => _shared;
+
+  List<DatabaseColor> _colors = [];
+  final _colorsStreamController =
+      StreamController<List<DatabaseColor>>.broadcast();
+
+  Stream<List<DatabaseColor>> get allColors => _colorsStreamController.stream;
+
+  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+    try {
+      final user = await getUser(email: email);
+      return user;
+    } on CouldNotFindUser {
+      final createdUser = await createUser(email: email);
+      return createdUser;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> _cacheColor() async {
+    final allColors = await getAllColors();
+    _colors = allColors.toList();
+    _colorsStreamController.add(_colors);
+  }
+
   Future<DatabaseColor> updateColor(
       {required DatabaseColor color, required String colorCode}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     await getColor(id: color.id);
 
@@ -26,17 +57,23 @@ class ColorsService {
     if (updatesCount == 0) {
       throw CouldNotUpdateColor();
     } else {
-      return await getColor(id: color.id);
+      final updatedColor = await getColor(id: color.id);
+      _colors.removeWhere((element) => element.id == updatedColor.id);
+      _colors.add(updatedColor);
+      _colorsStreamController.add(_colors);
+      return updatedColor;
     }
   }
 
   Future<Iterable<DatabaseColor>> getAllColors() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(colorTable);
     return results.map((n) => DatabaseColor.fromRow(n));
   }
 
   Future<DatabaseColor> getColor({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       colorTable,
@@ -47,16 +84,25 @@ class ColorsService {
     if (results.isEmpty) {
       throw CouldNotFindColor();
     } else {
-      return DatabaseColor.fromRow(results.first);
+      final color = DatabaseColor.fromRow(results.first);
+      _colors.removeWhere((element) => element.id == id);
+      _colors.add(color);
+      _colorsStreamController.add(_colors);
+      return color;
     }
   }
 
   Future<int> deleteAllColors() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
-    return await db.delete(colorTable);
+    final numberOfDeletions = await db.delete(colorTable);
+    _colors = [];
+    _colorsStreamController.add(_colors);
+    return numberOfDeletions;
   }
 
   Future<void> deleteColor({required int id}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(
       colorTable,
@@ -65,10 +111,14 @@ class ColorsService {
     );
     if (deletedCount == 0) {
       throw CouldNotDeleteColor();
+    } else {
+      _colors.removeWhere((color) => color.id == id);
+      _colorsStreamController.add(_colors);
     }
   }
 
   Future<DatabaseColor> createColor({required DatabaseUser owner}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
     final dbUser = await getUser(email: owner.email);
@@ -83,15 +133,21 @@ class ColorsService {
       "is_synced_with_cloud": 1,
     });
 
-    return DatabaseColor(
+    final color = DatabaseColor(
       id: colorId,
       userId: owner.id,
       colorCode: colorCode,
       isSyncedWithCloud: true,
     );
+
+    _colors.add(color);
+    _colorsStreamController.add(_colors);
+
+    return color;
   }
 
   Future<DatabaseUser> getUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -107,6 +163,7 @@ class ColorsService {
   }
 
   Future<DatabaseUser> createUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -123,6 +180,7 @@ class ColorsService {
   }
 
   Future<void> deleteUser({required String email}) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deletedCount = await db.delete(
       userTable,
@@ -131,6 +189,14 @@ class ColorsService {
     );
     if (deletedCount != 1) {
       throw CouldNotDeleteUser();
+    }
+  }
+
+  Future<void> _ensureDbIsOpen() async {
+    try {
+      await open();
+    } on DatabaseAlreadyOpenException {
+      // empty here
     }
   }
 
@@ -155,7 +221,7 @@ class ColorsService {
   }
 
   Future<void> open() async {
-    if (_db == null) {
+    if (_db != null) {
       throw DatabaseAlreadyOpenException();
     }
     try {
@@ -179,13 +245,15 @@ class ColorsService {
         CREATE TABLE IF NOT EXISTS "colors" (
           "id"	INTEGER NOT NULL,
           "user_id"	INTEGER NOT NULL,
-          "color_code"	TEXT NOT NULL DEFAULT #FFFFFF,
+          "color_code"	TEXT NOT NULL DEFAULT "#FFFFFF",
           "is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
           FOREIGN KEY("user_id") REFERENCES "user"("id"),
           PRIMARY KEY("id" AUTOINCREMENT)
         );
       ''';
       await db.execute(createColorTable);
+
+      await _cacheColor();
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentsDirectory();
     }
@@ -242,7 +310,7 @@ class DatabaseColor {
 }
 
 const dbName = 'colorfool_db';
-const colorTable = 'color';
+const colorTable = 'colors';
 const userTable = 'user';
 const idColumn = "id";
 const emailColumn = "email";
