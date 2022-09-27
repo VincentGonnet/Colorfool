@@ -11,12 +11,17 @@ class ColorsService {
   Database? _db;
 
   static final ColorsService _shared = ColorsService._sharedInstance();
-  ColorsService._sharedInstance();
+  ColorsService._sharedInstance() {
+    _colorsStreamController = StreamController<List<DatabaseColor>>.broadcast(
+      onListen: () {
+        _colorsStreamController.sink.add(_colors);
+      },
+    );
+  }
   factory ColorsService() => _shared;
 
   List<DatabaseColor> _colors = [];
-  final _colorsStreamController =
-      StreamController<List<DatabaseColor>>.broadcast();
+  late final StreamController<List<DatabaseColor>> _colorsStreamController;
 
   Stream<List<DatabaseColor>> get allColors => _colorsStreamController.stream;
 

@@ -22,11 +22,11 @@ class _ColorsViewState extends State<ColorsView> {
     super.initState();
   }
 
-  @override
-  void dispose() {
-    _colorsService.close();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _colorsService.close();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +73,23 @@ class _ColorsViewState extends State<ColorsView> {
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
-                      return const Text("Waiting for all colors...");
+                    case ConnectionState.active:
+                      if (snapshot.hasData) {
+                        final allColors = snapshot.data as List<DatabaseColor>;
+                        return ListView.builder(
+                          itemCount: allColors.length,
+                          itemBuilder: (context, index) {
+                            final color = allColors[index];
+                            return ListTile(
+                              title: Text(
+                                color.colorCode,
+                                maxLines: 1,
+                              ),
+                            );
+                          },
+                        );
+                      }
+                      return const Text("Waiting for data to be added");
                     default:
                       return const CircularProgressIndicator();
                   }
