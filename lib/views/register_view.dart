@@ -1,7 +1,7 @@
 import 'package:colorfool/constants/routes.dart';
 import 'package:colorfool/services/auth/auth_exceptions.dart';
 import 'package:colorfool/services/auth/auth_service.dart';
-import 'package:colorfool/utilities/show_error_dialog.dart';
+import 'package:colorfool/utilities/dialogs/error_dialog.dart';
 import 'package:flutter/material.dart';
 
 class RegisterView extends StatefulWidget {
@@ -57,7 +57,8 @@ class _RegisterViewState extends State<RegisterView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                await AuthService.firebase().createUser(email: email, password: password);
+                await AuthService.firebase()
+                    .createUser(email: email, password: password);
                 AuthService.firebase().currentUser;
                 AuthService.firebase().sendEmailVerification();
                 Navigator.of(context).pushNamedAndRemoveUntil(

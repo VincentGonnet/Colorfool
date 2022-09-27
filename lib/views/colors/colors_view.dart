@@ -1,8 +1,10 @@
 import 'package:colorfool/services/auth/auth_service.dart';
 import 'package:colorfool/services/crud/colors_service.dart';
+import 'package:colorfool/views/colors/colors_list_view.dart';
 import 'package:flutter/material.dart';
 import '../../constants/routes.dart';
 import '../../enums/menu_action.dart';
+import '../../utilities/dialogs/logout_dialog.dart';
 
 class ColorsView extends StatefulWidget {
   const ColorsView({Key? key}) : super(key: key);
@@ -76,16 +78,10 @@ class _ColorsViewState extends State<ColorsView> {
                     case ConnectionState.active:
                       if (snapshot.hasData) {
                         final allColors = snapshot.data as List<DatabaseColor>;
-                        return ListView.builder(
-                          itemCount: allColors.length,
-                          itemBuilder: (context, index) {
-                            final color = allColors[index];
-                            return ListTile(
-                              title: Text(
-                                color.colorCode,
-                                maxLines: 1,
-                              ),
-                            );
+                        return ColorsListView(
+                          colors: allColors,
+                          onDeleteColor: (color) async {
+                            await _colorsService.deleteColor(id: color.id);
                           },
                         );
                       }
@@ -102,27 +98,4 @@ class _ColorsViewState extends State<ColorsView> {
       ),
     );
   }
-}
-
-Future<bool> showLogOutDialog(BuildContext context) {
-  return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Sign out"),
-          content: const Text("Are you sure you want to log out ?"),
-          actions: [
-            TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: const Text("Cancel")),
-            TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text("Log Out")),
-          ],
-        );
-      }).then((value) => value ?? false);
 }

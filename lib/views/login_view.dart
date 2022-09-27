@@ -4,7 +4,7 @@ import 'package:colorfool/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 
-import '../utilities/show_error_dialog.dart';
+import '../utilities/dialogs/error_dialog.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -60,20 +60,22 @@ class _LoginViewState extends State<LoginView> {
               final email = _email.text;
               final password = _password.text;
               if (email == "" || password == "") {
-                return await showErrorDialog(context, "Please specify an email and a password");
+                return await showErrorDialog(
+                    context, "Please specify an email and a password");
               }
               try {
-                await AuthService.firebase().logIn(email: email, password: password);
+                await AuthService.firebase()
+                    .logIn(email: email, password: password);
                 final user = AuthService.firebase().currentUser;
                 if (user?.isEmailVerified ?? false) {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     colorsRoute,
-                        (route) => false,
+                    (route) => false,
                   );
                 } else {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     verifyEmailRoute,
-                        (route) => false,
+                    (route) => false,
                   );
                 }
               } on UserNotFoundAuthException {
