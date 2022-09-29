@@ -38,7 +38,7 @@ class _ColorsViewState extends State<ColorsView> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed(newColorRoute);
+              Navigator.of(context).pushNamed(createUpdateColorRoute);
             },
             icon: const Icon(Icons.add),
           ),
@@ -82,6 +82,12 @@ class _ColorsViewState extends State<ColorsView> {
                           colors: allColors,
                           onDeleteColor: (color) async {
                             await _colorsService.deleteColor(id: color.id);
+                          },
+                          onTap: (color) {
+                            Navigator.of(context).pushNamed(
+                              createUpdateColorRoute,
+                              arguments: color,
+                            );
                           },
                         );
                       }

@@ -1,26 +1,36 @@
 import 'package:colorfool/services/auth/auth_service.dart';
 import 'package:colorfool/services/crud/colors_service.dart';
+import 'package:colorfool/utilities/generics/get_argument.dart';
 import 'package:flutter/material.dart';
 
-class NewColorView extends StatefulWidget {
-  const NewColorView({Key? key}) : super(key: key);
+class CreateUpdateColorView extends StatefulWidget {
+  const CreateUpdateColorView({Key? key}) : super(key: key);
 
   @override
-  State<NewColorView> createState() => _NewColorViewState();
+  State<CreateUpdateColorView> createState() => _CreateUpdateColorViewState();
 }
 
-class _NewColorViewState extends State<NewColorView> {
+class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
   DatabaseColor? _color;
   late final ColorsService _colorsService;
   late final TextEditingController _textController;
 
-  Future<DatabaseColor> createNewColor() async {
+  Future<DatabaseColor> _createOrGetColor() async {
+    final widgetColor = context.getArgument<DatabaseColor>();
+    if (widgetColor != null) {
+      _color = widgetColor;
+      _textController.text = widgetColor.colorCode;
+      return widgetColor;
+    }
+
     final existingColor = _color;
     if (existingColor != null) return existingColor;
 
     final owner = await _colorsService.getUser(
         email: AuthService.firebase().currentUser!.email!);
-    return await _colorsService.createColor(owner: owner);
+    final newColor = await _colorsService.createColor(owner: owner);
+    _color = newColor;
+    return newColor;
   }
 
   void _deleteColorIfTextIsEmpty() {
@@ -72,11 +82,10 @@ class _NewColorViewState extends State<NewColorView> {
           title: const Text("New Color"),
         ),
         body: FutureBuilder(
-          future: createNewColor(),
+          future: _createOrGetColor(),
           builder: (context, snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.done:
-                _color = snapshot.data as DatabaseColor;
                 _setupTextController();
                 return TextField(
                   controller: _textController,

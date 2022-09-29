@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 
 import '../../utilities/dialogs/delete_dialog.dart';
 
-typedef DeleteColorCallback = void Function(DatabaseColor color);
+typedef ColorCallback = void Function(DatabaseColor color);
 
 class ColorsListView extends StatelessWidget {
   final List<DatabaseColor> colors;
-  final DeleteColorCallback onDeleteColor;
+  final ColorCallback onDeleteColor;
+  final ColorCallback onTap;
 
   const ColorsListView({
     Key? key,
     required this.colors,
     required this.onDeleteColor,
+    required this.onTap,
   }) : super(key: key);
 
   @override
@@ -26,6 +28,9 @@ class ColorsListView extends StatelessWidget {
             color.colorCode,
             maxLines: 1,
           ),
+          onTap: () {
+            onTap(color);
+          },
           trailing: IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () async {
