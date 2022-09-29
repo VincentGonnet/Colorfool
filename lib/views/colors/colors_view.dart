@@ -24,11 +24,11 @@ class _ColorsViewState extends State<ColorsView> {
     super.initState();
   }
 
-  // @override
-  // void dispose() {
-  //   _colorsService.close();
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    _colorsService.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

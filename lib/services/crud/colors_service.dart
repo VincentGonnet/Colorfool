@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:colorfool/extensions/list/filter.dart';
 import 'package:colorfool/services/crud/crud_exceptions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
@@ -9,6 +10,7 @@ import 'package:path/path.dart' show join;
 
 class ColorsService {
   Database? _db;
+  DatabaseUser? _user;
 
   static final ColorsService _shared = ColorsService._sharedInstance();
   ColorsService._sharedInstance() {
@@ -23,14 +25,27 @@ class ColorsService {
   List<DatabaseColor> _colors = [];
   late final StreamController<List<DatabaseColor>> _colorsStreamController;
 
-  Stream<List<DatabaseColor>> get allColors => _colorsStreamController.stream;
+  Stream<List<DatabaseColor>> get allColors =>
+      _colorsStreamController.stream.filter((color) {
+        final currentUser = _user;
+        if (currentUser != null) {
+          return color.userId == currentUser.id;
+        } else {
+          throw UserShouldBeSetBeforeReadingAllColors();
+        }
+      });
 
-  Future<DatabaseUser> getOrCreateUser({required String email}) async {
+  Future<DatabaseUser> getOrCreateUser({
+    required String email,
+    bool setAsCurrent = true,
+  }) async {
     try {
       final user = await getUser(email: email);
+      if (setAsCurrent) _user = user;
       return user;
     } on CouldNotFindUser {
       final createdUser = await createUser(email: email);
+      if (setAsCurrent) _user = createdUser;
       return createdUser;
     } catch (e) {
       rethrow;

@@ -15,3 +15,5 @@ class CouldNotDeleteColor implements Exception {}
 class CouldNotFindColor implements Exception {}
 
 class CouldNotUpdateColor implements Exception {}
+
+class UserShouldBeSetBeforeReadingAllColors implements Exception {}
