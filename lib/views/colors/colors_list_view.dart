@@ -1,4 +1,5 @@
 import 'package:colorfool/services/crud/colors_service.dart';
+import 'package:colorfool/utilities/conversions/color_code.dart';
 import 'package:flutter/material.dart';
 
 import '../../utilities/dialogs/delete_dialog.dart';
@@ -23,24 +24,28 @@ class ColorsListView extends StatelessWidget {
       itemCount: colors.length,
       itemBuilder: (context, index) {
         final color = colors[index];
-        return ListTile(
-          title: Text(
-            color.colorCode,
-            maxLines: 1,
-          ),
-          onTap: () {
-            onTap(color);
-          },
-          trailing: IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () async {
-              final shouldDelete = await showDeleteDialog(context);
-              if (shouldDelete) {
-                onDeleteColor(color);
-              }
-            },
-          ),
-        );
+        return Container(
+            padding: const EdgeInsets.all(5),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              onTap: () {
+                onTap(color);
+              },
+              tileColor: getColorFromFormattedCode(color.colorCode),
+              trailing: IconButton(
+                icon: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+                onPressed: () async {
+                  final shouldDelete = await showDeleteDialog(context);
+                  if (shouldDelete) {
+                    onDeleteColor(color);
+                  }
+                },
+              ),
+            ));
       },
     );
   }

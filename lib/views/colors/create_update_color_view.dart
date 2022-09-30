@@ -4,6 +4,7 @@ import 'package:colorfool/utilities/dialogs/error_dialog.dart';
 import 'package:colorfool/utilities/generics/get_argument.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:colorfool/utilities/conversions/color_code.dart';
 
 class CreateUpdateColorView extends StatefulWidget {
   const CreateUpdateColorView({Key? key}) : super(key: key);
@@ -24,7 +25,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
     if (widgetColor != null) {
       _color = widgetColor;
       _textController.text = widgetColor.colorCode;
-      _rawColor = _getColorFromFormattedCode(widgetColor.colorCode);
+      _rawColor = getColorFromFormattedCode(widgetColor.colorCode);
       hasBeenSaved = true;
       return widgetColor;
     }
@@ -52,6 +53,8 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
     if (color != null && _textInputValidation(colorCode)) {
       await _colorsService.updateColor(color: color, colorCode: colorCode);
       hasBeenSaved = true;
+      if (!mounted) return;
+      Navigator.of(context).pop();
     } else {
       showErrorDialog(context, "Invalid color format");
     }
@@ -86,14 +89,6 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
     _deleteColorIfNotSaved();
     _textController.dispose();
     super.dispose();
-  }
-
-  String _getFormattedColorCode(Color color) {
-    return color.value.toRadixString(16).substring(2);
-  }
-
-  Color _getColorFromFormattedCode(String colorCode) {
-    return Color(int.parse('ff$colorCode', radix: 16));
   }
 
   @override
@@ -138,7 +133,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
                                       ElevatedButton(
                                         onPressed: () {
                                           _textController.text =
-                                              _getFormattedColorCode(_rawColor);
+                                              getFormattedColorCode(_rawColor);
                                           Navigator.of(context).pop();
                                         },
                                         child: const Text("Done"),
