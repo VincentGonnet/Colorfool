@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:colorfool/utilities/conversions/color_code.dart';
 
+enum PickerType { precise, material, block }
+
 class CreateUpdateColorView extends StatefulWidget {
   const CreateUpdateColorView({Key? key}) : super(key: key);
 
@@ -19,6 +21,9 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
   bool hasBeenSaved = false;
   late final ColorsService _colorsService;
   late final TextEditingController _textController;
+  final ValueNotifier<PickerType> _pickerType =
+      ValueNotifier(PickerType.precise);
+  final ValueNotifier<bool> _validTextInput = ValueNotifier(false);
 
   Future<DatabaseColor> _createOrGetColor() async {
     final widgetColor = context.getArgument<DatabaseColor>();
@@ -27,6 +32,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
       _textController.text = widgetColor.colorCode;
       _rawColor = getColorFromFormattedCode(widgetColor.colorCode);
       hasBeenSaved = true;
+      _validTextInput.value = hasBeenSaved;
       return widgetColor;
     }
 
@@ -61,15 +67,13 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
   }
 
   bool _textInputValidation(String input) {
-    final RegExp hex = RegExp(r'([a-f0-9]{6})');
+    final RegExp hex = RegExp(r'([a-fA-F0-9]{6})');
     return hex.hasMatch(input);
   }
 
   void _textControllerListener() async {
     final colorCode = _textController.text;
-    if (!_textInputValidation(colorCode)) {
-      // TODO: tell the user the input is not correct
-    }
+    _validTextInput.value = _textInputValidation(colorCode);
   }
 
   void _setupTextController() {
@@ -94,6 +98,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: ColorfoolAppBar(controller: _textController),
         body: FutureBuilder(
           future: _createOrGetColor(),
@@ -101,62 +106,158 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
             switch (snapshot.connectionState) {
               case ConnectionState.done:
                 _setupTextController();
-                return Column(children: [
-                  Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.all(30),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _textController,
-                          decoration: const InputDecoration(
-                            hintText: "Color code",
-                            hintMaxLines: 1,
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text("Pick a color !"),
-                                    content: SingleChildScrollView(
-                                      child: ColorPicker(
-                                        pickerColor: _rawColor,
-                                        onColorChanged: (Color color) {
-                                          _rawColor = color;
-                                        },
+                return Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(30),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Spacer(),
+                          SizedBox(
+                            width: 180,
+                            child: ValueListenableBuilder(
+                              valueListenable: _validTextInput,
+                              builder: (context, value, child) {
+                                return TextField(
+                                  controller: _textController,
+                                  maxLength: 6,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: Colors.black87,
+                                  ),
+                                  decoration: InputDecoration(
+                                      counterText: '',
+                                      hintText: "FFFFFF",
+                                      hintStyle: const TextStyle(fontSize: 20),
+                                      prefixIcon: const Padding(
+                                        padding: EdgeInsetsDirectional.only(
+                                          start: 12.0,
+                                        ),
+                                        child: Icon(
+                                          Icons.grid_3x3_outlined,
+                                          color: Colors.black45,
+                                        ),
                                       ),
-                                    ),
-                                    actions: <Widget>[
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          _textController.text =
-                                              getFormattedColorCode(_rawColor);
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text("Done"),
-                                      )
-                                    ],
-                                  );
-                                });
+                                      suffixIcon: Padding(
+                                        padding:
+                                            const EdgeInsetsDirectional.only(
+                                          end: 30.0,
+                                        ),
+                                        child: Icon(
+                                            _validTextInput.value
+                                                ? Icons.check
+                                                : Icons.close,
+                                            color: _validTextInput.value
+                                                ? Colors.green
+                                                : Colors.red),
+                                      ),
+                                      hintMaxLines: 1,
+                                      border: InputBorder.none),
+                                );
+                              },
+                            ),
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
+                      Expanded(
+                        child: ValueListenableBuilder(
+                          valueListenable: _pickerType,
+                          builder: (context, value, child) {
+                            switch (value) {
+                              case PickerType.material:
+                                return MaterialPicker(
+                                  pickerColor: _rawColor,
+                                  onColorChanged: (Color color) {
+                                    _rawColor = color;
+                                    _textController.text =
+                                        getFormattedColorCode(_rawColor)
+                                            .toUpperCase();
+                                  },
+                                );
+                              case PickerType.block:
+                                return BlockPicker(
+                                  pickerColor: _rawColor,
+                                  onColorChanged: (Color color) {
+                                    _rawColor = color;
+                                    _textController.text =
+                                        getFormattedColorCode(_rawColor)
+                                            .toUpperCase();
+                                  },
+                                );
+                              default:
+                                return ColorPicker(
+                                  pickerColor: _rawColor,
+                                  onColorChanged: (Color color) {
+                                    _rawColor = color;
+                                    _textController.text =
+                                        getFormattedColorCode(_rawColor)
+                                            .toUpperCase();
+                                  },
+                                );
+                            }
                           },
-                          child: const Text("Default Color Picker"),
-                        )
-                      ],
-                    ),
+                        ),
+                      ),
+                      ValueListenableBuilder(
+                        valueListenable: _pickerType,
+                        builder: (context, value, child) {
+                          return ButtonBar(
+                            alignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  _pickerType.value = PickerType.precise;
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      _pickerType.value == PickerType.precise
+                                          ? Colors.deepPurple
+                                          : Colors.blue,
+                                ),
+                                child: const Icon(Icons.loupe),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  _pickerType.value = PickerType.material;
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      _pickerType.value == PickerType.material
+                                          ? Colors.deepPurple
+                                          : Colors.blue,
+                                ),
+                                child: const Icon(Icons.list_alt_outlined),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  _pickerType.value = PickerType.block;
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      _pickerType.value == PickerType.block
+                                          ? Colors.deepPurple
+                                          : Colors.blue,
+                                ),
+                                child: const Icon(Icons.color_lens),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _rawColor,
+                        ),
+                        onPressed: () {
+                          _saveColorAndExit();
+                        },
+                        child: const Text("Done"),
+                      ),
+                    ],
                   ),
-                  Container(
-                    alignment: Alignment.bottomCenter,
-                    child: TextButton(
-                      onPressed: () {
-                        _saveColorAndExit();
-                      },
-                      child: const Text("Done"),
-                    ),
-                  )
-                ]);
+                );
               default:
                 return const CircularProgressIndicator();
             }
@@ -181,7 +282,7 @@ class ColorfoolAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _ColorfoolAppBarState extends State<ColorfoolAppBar> {
   Color _color = Colors.blue;
-  final RegExp hex = RegExp(r'([a-f0-9]{6})');
+  final RegExp hex = RegExp(r'([a-fA-F0-9]{6})');
 
   void _setColor(String colorCode) {
     if (hex.hasMatch(colorCode)) {
@@ -189,9 +290,12 @@ class _ColorfoolAppBarState extends State<ColorfoolAppBar> {
     }
   }
 
+  bool _hasBeenSaved = false;
+
   @override
   void initState() {
     _setColor(widget.controller.text);
+    _hasBeenSaved = (widget.controller.text != "");
     widget.controller.addListener(() {
       final colorCode = widget.controller.text;
       setState(() {
@@ -204,7 +308,7 @@ class _ColorfoolAppBarState extends State<ColorfoolAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text("New color"),
+      title: Text(_hasBeenSaved ? "Update Color" : "New Color"),
       backgroundColor: _color,
     );
   }
