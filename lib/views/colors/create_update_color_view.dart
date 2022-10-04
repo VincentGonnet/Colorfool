@@ -92,6 +92,8 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
   void dispose() {
     _deleteColorIfNotSaved();
     _textController.dispose();
+    _validTextInput.dispose();
+    _pickerType.dispose();
     super.dispose();
   }
 
@@ -253,7 +255,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
                         onPressed: () {
                           _saveColorAndExit();
                         },
-                        child: const Text("Done"),
+                        child: const Text("Save"),
                       ),
                     ],
                   ),
