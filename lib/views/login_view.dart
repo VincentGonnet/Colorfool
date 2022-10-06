@@ -3,6 +3,7 @@ import 'package:colorfool/services/auth/auth_exceptions.dart';
 import 'package:colorfool/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
+import 'package:google_fonts/google_fonts.dart';
 
 import '../utilities/dialogs/error_dialog.dart';
 
@@ -43,6 +44,17 @@ class _LoginViewState extends State<LoginView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Spacer(flex: 1),
+              Container(
+                padding: const EdgeInsets.only(bottom: 30),
+                child: Text(
+                  "Colorfool",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 30,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
               TextField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
@@ -112,13 +124,15 @@ class _LoginViewState extends State<LoginView> {
                 child: const Text("Login"),
               ),
               TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      registerRoute,
-                      (route) => false,
-                    );
-                  },
-                  child: const Text("Not registered yet? Register here!")),
+                onPressed: () {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    registerRoute,
+                    (route) => false,
+                  );
+                },
+                child: const Text("Not registered yet? Register here!"),
+              ),
+              const Spacer(flex: 2),
             ],
           ),
         ));
