@@ -11,11 +11,17 @@ class FirebaseCloudStorage {
           .map((doc) => CloudColor.fromSnapshot(doc))
           .where((color) => color.ownerUserId == ownerUserId));
 
-  void createNewColor({required String ownerUserId}) async {
-    await colors.add({
+  Future<CloudColor> createNewColor({required String ownerUserId}) async {
+    final document = await colors.add({
       ownerUserIdFieldName: ownerUserId,
       colorCodeFieldName: '',
     });
+    final fetchedColor = await document.get();
+    return CloudColor(
+      documentId: fetchedColor.id,
+      ownerUserId: ownerUserId,
+      colorCode: "",
+    );
   }
 
   Future<Iterable<CloudColor>> getColors({required String ownerUserId}) async {
@@ -27,13 +33,7 @@ class FirebaseCloudStorage {
           )
           .get()
           .then(
-            (value) => value.docs.map((doc) {
-              return CloudColor(
-                documentId: doc.id,
-                ownerUserId: doc.data()[ownerUserIdFieldName] as String,
-                colorCode: doc.data()[colorCodeFieldName] as String,
-              );
-            }),
+            (value) => value.docs.map((doc) => CloudColor.fromSnapshot(doc)),
           );
     } catch (e) {
       throw CouldNotGetAllColorsException();

@@ -1,10 +1,11 @@
 import 'package:colorfool/services/auth/auth_service.dart';
-import 'package:colorfool/services/crud/colors_service.dart';
 import 'package:colorfool/utilities/dialogs/error_dialog.dart';
 import 'package:colorfool/utilities/generics/get_argument.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:colorfool/utilities/conversions/color_code.dart';
+import 'package:colorfool/services/cloud/cloud_color.dart';
+import 'package:colorfool/services/cloud/firebase_cloud_storage.dart';
 
 enum PickerType { precise, material, block }
 
@@ -16,17 +17,17 @@ class CreateUpdateColorView extends StatefulWidget {
 }
 
 class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
-  DatabaseColor? _color;
+  CloudColor? _color;
   Color _rawColor = Colors.blue;
   bool hasBeenSaved = false;
-  late final ColorsService _colorsService;
+  late final FirebaseCloudStorage _colorsService;
   late final TextEditingController _textController;
   final ValueNotifier<PickerType> _pickerType =
       ValueNotifier(PickerType.precise);
   final ValueNotifier<bool> _validTextInput = ValueNotifier(false);
 
-  Future<DatabaseColor> _createOrGetColor() async {
-    final widgetColor = context.getArgument<DatabaseColor>();
+  Future<CloudColor> _createOrGetColor() async {
+    final widgetColor = context.getArgument<CloudColor>();
     if (widgetColor != null) {
       _color = widgetColor;
       _textController.text = widgetColor.colorCode;
@@ -38,10 +39,9 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
 
     final existingColor = _color;
     if (existingColor != null) return existingColor;
-
-    final owner = await _colorsService.getUser(
-        email: AuthService.firebase().currentUser!.email);
-    final newColor = await _colorsService.createColor(owner: owner);
+    final currentUser = AuthService.firebase().currentUser!;
+    final userId = currentUser.id;
+    final newColor = await _colorsService.createNewColor(ownerUserId: userId);
     _color = newColor;
     return newColor;
   }
@@ -49,7 +49,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
   void _deleteColorIfNotSaved() {
     final color = _color;
     if (color != null && !hasBeenSaved) {
-      _colorsService.deleteColor(id: color.id);
+      _colorsService.deleteColor(documentId: color.documentId);
     }
   }
 
@@ -57,7 +57,8 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
     final color = _color;
     final colorCode = _textController.text;
     if (color != null && _textInputValidation(colorCode)) {
-      await _colorsService.updateColor(color: color, colorCode: colorCode);
+      await _colorsService.updateColor(
+          documentId: color.documentId, colorCode: colorCode);
       hasBeenSaved = true;
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -83,7 +84,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
 
   @override
   void initState() {
-    _colorsService = ColorsService();
+    _colorsService = FirebaseCloudStorage();
     _textController = TextEditingController();
     super.initState();
   }

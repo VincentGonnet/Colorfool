@@ -1,13 +1,13 @@
-import 'package:colorfool/services/crud/colors_service.dart';
+import 'package:colorfool/services/cloud/cloud_color.dart';
 import 'package:colorfool/utilities/conversions/color_code.dart';
 import 'package:flutter/material.dart';
 
 import '../../utilities/dialogs/delete_dialog.dart';
 
-typedef ColorCallback = void Function(DatabaseColor color);
+typedef ColorCallback = void Function(CloudColor color);
 
 class ColorsListView extends StatelessWidget {
-  final List<DatabaseColor> colors;
+  final Iterable<CloudColor> colors;
   final ColorCallback onDeleteColor;
   final ColorCallback onTap;
 
@@ -23,7 +23,7 @@ class ColorsListView extends StatelessWidget {
     return ListView.builder(
       itemCount: colors.length,
       itemBuilder: (context, index) {
-        final color = colors[index];
+        final color = colors.elementAt(index);
         return Container(
             padding: const EdgeInsets.all(5),
             child: ListTile(

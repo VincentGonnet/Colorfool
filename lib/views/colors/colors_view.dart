@@ -1,5 +1,6 @@
 import 'package:colorfool/services/auth/auth_service.dart';
-import 'package:colorfool/services/crud/colors_service.dart';
+import 'package:colorfool/services/cloud/cloud_color.dart';
+import 'package:colorfool/services/cloud/firebase_cloud_storage.dart';
 import 'package:colorfool/views/colors/colors_list_view.dart';
 import 'package:flutter/material.dart';
 import '../../constants/routes.dart';
@@ -14,20 +15,13 @@ class ColorsView extends StatefulWidget {
 }
 
 class _ColorsViewState extends State<ColorsView> {
-  late final ColorsService _colorsService;
-  String get userEmail => AuthService.firebase().currentUser!.email;
+  late final FirebaseCloudStorage _colorsService;
+  String get userId => AuthService.firebase().currentUser!.id;
 
   @override
   void initState() {
-    _colorsService = ColorsService();
-    _colorsService.open();
+    _colorsService = FirebaseCloudStorage();
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _colorsService.close();
-    super.dispose();
   }
 
   @override
@@ -66,38 +60,29 @@ class _ColorsViewState extends State<ColorsView> {
           })
         ],
       ),
-      body: FutureBuilder(
-        future: _colorsService.getOrCreateUser(email: userEmail),
+      body: StreamBuilder(
+        stream: _colorsService.allColors(ownerUserId: userId),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              return StreamBuilder(
-                stream: _colorsService.allColors,
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                    case ConnectionState.active:
-                      if (snapshot.hasData) {
-                        final allColors = snapshot.data as List<DatabaseColor>;
-                        return ColorsListView(
-                          colors: allColors,
-                          onDeleteColor: (color) async {
-                            await _colorsService.deleteColor(id: color.id);
-                          },
-                          onTap: (color) {
-                            Navigator.of(context).pushNamed(
-                              createUpdateColorRoute,
-                              arguments: color,
-                            );
-                          },
-                        );
-                      }
-                      return const Text("Waiting for data to be added");
-                    default:
-                      return const CircularProgressIndicator();
-                  }
-                },
-              );
+            case ConnectionState.waiting:
+            case ConnectionState.active:
+              if (snapshot.hasData) {
+                final allColors = snapshot.data as Iterable<CloudColor>;
+                return ColorsListView(
+                  colors: allColors,
+                  onDeleteColor: (color) async {
+                    await _colorsService.deleteColor(
+                        documentId: color.documentId);
+                  },
+                  onTap: (color) {
+                    Navigator.of(context).pushNamed(
+                      createUpdateColorRoute,
+                      arguments: color,
+                    );
+                  },
+                );
+              }
+              return const Text("Waiting for data to be added");
             default:
               return const CircularProgressIndicator();
           }
