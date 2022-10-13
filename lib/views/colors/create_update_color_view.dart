@@ -40,7 +40,7 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
     if (existingColor != null) return existingColor;
 
     final owner = await _colorsService.getUser(
-        email: AuthService.firebase().currentUser!.email!);
+        email: AuthService.firebase().currentUser!.email);
     final newColor = await _colorsService.createColor(owner: owner);
     _color = newColor;
     return newColor;

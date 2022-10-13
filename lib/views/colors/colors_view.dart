@@ -15,7 +15,7 @@ class ColorsView extends StatefulWidget {
 
 class _ColorsViewState extends State<ColorsView> {
   late final ColorsService _colorsService;
-  String get userEmail => AuthService.firebase().currentUser!.email!;
+  String get userEmail => AuthService.firebase().currentUser!.email;
 
   @override
   void initState() {
@@ -48,6 +48,7 @@ class _ColorsViewState extends State<ColorsView> {
                 final shouldLogout = await showLogOutDialog(context);
                 if (shouldLogout) {
                   await AuthService.firebase().logOut();
+                  if (!mounted) return;
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     loginRoute,
                     (_) => false,
