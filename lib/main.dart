@@ -1,5 +1,8 @@
 import 'package:colorfool/constants/routes.dart';
-import 'package:colorfool/services/auth/auth_service.dart';
+import 'package:colorfool/services/auth/bloc/auth_bloc.dart';
+import 'package:colorfool/services/auth/bloc/auth_events.dart';
+import 'package:colorfool/services/auth/bloc/auth_state.dart';
+import 'package:colorfool/services/auth/firebase_auth_provider.dart';
 import 'package:colorfool/views/colors/colors_view.dart';
 import 'package:colorfool/views/colors/create_update_color_view.dart';
 import 'package:colorfool/views/login_view.dart';
@@ -7,6 +10,7 @@ import 'package:colorfool/views/register_view.dart';
 import 'package:colorfool/views/verify_email_view.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +27,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomePage(),
+      home: BlocProvider<AuthBloc>(
+        create: (context) => AuthBloc(FirebaseAuthProvider()),
+        child: const HomePage(),
+      ),
       routes: {
         loginRoute: (context) => const LoginView(),
         registerRoute: (context) => const RegisterView(),
@@ -40,24 +47,20 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: AuthService.firebase().initialize(),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              final user = AuthService.firebase().currentUser;
-              if (user != null) {
-                if (user.isEmailVerified) {
-                } else {
-                  return const VerifyEmailView();
-                }
-              } else {
-                return const LoginView();
-              }
-              return const ColorsView();
-            default:
-              return const CircularProgressIndicator();
-          }
-        });
+    context.read<AuthBloc>().add(const AuthEventInitialize());
+
+    return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+      if (state is AuthStateLoggedIn) {
+        return const ColorsView();
+      } else if (state is AuthStateNeedsVerification) {
+        return const VerifyEmailView();
+      } else if (state is AuthStateLoggedOut) {
+        return const LoginView();
+      } else {
+        return const Scaffold(
+          body: CircularProgressIndicator(),
+        );
+      }
+    });
   }
 }

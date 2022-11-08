@@ -1,8 +1,11 @@
 import 'package:colorfool/services/auth/auth_service.dart';
+import 'package:colorfool/services/auth/bloc/auth_bloc.dart';
+import 'package:colorfool/services/auth/bloc/auth_events.dart';
 import 'package:colorfool/services/cloud/cloud_color.dart';
 import 'package:colorfool/services/cloud/firebase_cloud_storage.dart';
 import 'package:colorfool/views/colors/colors_list_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../constants/routes.dart';
 import '../../enums/menu_action.dart';
 import '../../utilities/dialogs/logout_dialog.dart';
@@ -41,12 +44,8 @@ class _ColorsViewState extends State<ColorsView> {
               case MenuAction.logout:
                 final shouldLogout = await showLogOutDialog(context);
                 if (shouldLogout) {
-                  await AuthService.firebase().logOut();
                   if (!mounted) return;
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    loginRoute,
-                    (_) => false,
-                  );
+                  context.read<AuthBloc>().add(const AuthEventLogOut());
                 } else {
                   return;
                 }
