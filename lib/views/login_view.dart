@@ -2,6 +2,7 @@ import 'package:colorfool/constants/routes.dart';
 import 'package:colorfool/services/auth/auth_exceptions.dart';
 import 'package:colorfool/services/auth/bloc/auth_bloc.dart';
 import 'package:colorfool/services/auth/bloc/auth_events.dart';
+import 'package:colorfool/services/auth/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as devtools show log;
@@ -84,31 +85,34 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  final email = _email.text;
-                  final password = _password.text;
-                  if (email == "" || password == "") {
-                    return await showErrorDialog(
-                        context, "Please specify an email and a password");
-                  }
-                  try {
-                    context.read<AuthBloc>().add(AuthEventLogIn(email, password));
-                  } on UserNotFoundAuthException {
-                    await showErrorDialog(context, 'User not found');
-                  } on WrongPasswordAuthException {
-                    await showErrorDialog(context, 'Wrong password');
-                  } on InvalidEmailAuthException {
-                    await showErrorDialog(context, 'Invalid email');
-                  } on GenericAuthException {
-                    await showErrorDialog(context, 'Authentication error');
-                  } catch (error) {
-                    devtools.log("--- ERROR ---");
-                    devtools.log(error.runtimeType.toString());
-                    devtools.log(error.toString());
+              BlocListener<AuthBloc, AuthState>(
+                listener: (context, state) async {
+                  if (state is AuthStateLoggedOut) {
+                    if (state.exception is UserNotFoundAuthException) {
+                      await showErrorDialog(context, 'User not found');
+                    } else if (state.exception is WrongPasswordAuthException) {
+                      await showErrorDialog(context, 'Wrong password');
+                    } else if (state.exception is InvalidEmailAuthException) {
+                      await showErrorDialog(context, 'Invalid email');
+                    } else if (state.exception is GenericAuthException) {
+                      await showErrorDialog(context, 'Authentication error');
+                    }
                   }
                 },
-                child: const Text("Login"),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final email = _email.text;
+                    final password = _password.text;
+                    if (email == "" || password == "") {
+                      return await showErrorDialog(
+                          context, "Please specify an email and a password");
+                    }
+                    context
+                        .read<AuthBloc>()
+                        .add(AuthEventLogIn(email, password));
+                  },
+                  child: const Text("Login"),
+                ),
               ),
               TextButton(
                 onPressed: () {
