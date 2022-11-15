@@ -1,12 +1,9 @@
-import 'package:colorfool/constants/routes.dart';
 import 'package:colorfool/services/auth/auth_exceptions.dart';
 import 'package:colorfool/services/auth/bloc/auth_bloc.dart';
 import 'package:colorfool/services/auth/bloc/auth_events.dart';
 import 'package:colorfool/services/auth/bloc/auth_state.dart';
-import 'package:colorfool/utilities/dialogs/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:developer' as devtools show log;
 import 'package:google_fonts/google_fonts.dart';
 
 import '../utilities/dialogs/error_dialog.dart';
@@ -21,7 +18,6 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-  CloseDialog? _closeDialogHandle;
 
   @override
   void initState() {
@@ -41,14 +37,6 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-
-        final closeDialog = _closeDialogHandle;
-
-        if (!state.isLoading && closeDialog != null) {
-          closeDialog();
-          _closeDialogHandle = null;
-        }
-
         if (state is AuthStateLoggedOut) {
           if (state.exception is UserNotFoundAuthException) {
             await showErrorDialog(context, 'User not found');

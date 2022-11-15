@@ -1,4 +1,5 @@
 import 'package:colorfool/constants/routes.dart';
+import 'package:colorfool/helpers/loading/loading_screen.dart';
 import 'package:colorfool/services/auth/bloc/auth_bloc.dart';
 import 'package:colorfool/services/auth/bloc/auth_events.dart';
 import 'package:colorfool/services/auth/bloc/auth_state.dart';
@@ -49,7 +50,13 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
 
-    return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+    return BlocConsumer<AuthBloc, AuthState>(listener: (context, state) {
+      if (state.isLoading) {
+        LoadingScreen().show(context: context, text: state.loadingText ?? "Please wait a moment");
+      } else {
+        LoadingScreen().hide();
+      }
+    }, builder: (context, state) {
       if (state is AuthStateLoggedIn) {
         return const ColorsView();
       } else if (state is AuthStateNeedsVerification) {
