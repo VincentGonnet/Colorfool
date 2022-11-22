@@ -262,7 +262,10 @@ class _CreateUpdateColorViewState extends State<CreateUpdateColorView> {
                   ),
                 );
               default:
-                return const CircularProgressIndicator();
+                return Container(
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(),
+                );
             }
           },
         ));

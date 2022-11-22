@@ -5,6 +5,7 @@ import 'package:colorfool/services/cloud/cloud_storage_exceptions.dart';
 
 class FirebaseCloudStorage {
   final colors = FirebaseFirestore.instance.collection('colors');
+  late int highestOrder;
 
   Stream<Iterable<CloudColor>> allColors({required String ownerUserId}) =>
       colors.snapshots().map((query) => query.docs
@@ -15,12 +16,14 @@ class FirebaseCloudStorage {
     final document = await colors.add({
       ownerUserIdFieldName: ownerUserId,
       colorCodeFieldName: '',
+      orderFieldName: highestOrder+1,
     });
     final fetchedColor = await document.get();
     return CloudColor(
       documentId: fetchedColor.id,
       ownerUserId: ownerUserId,
       colorCode: "",
+      order: highestOrder+1,
     );
   }
 
@@ -60,6 +63,6 @@ class FirebaseCloudStorage {
   // make FirebaseCloudStorage a singleton
   static final FirebaseCloudStorage _shared =
       FirebaseCloudStorage._sharedInstance();
-  FirebaseCloudStorage._sharedInstance();
   factory FirebaseCloudStorage() => _shared;
+  FirebaseCloudStorage._sharedInstance();
 }

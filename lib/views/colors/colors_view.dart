@@ -64,10 +64,15 @@ class _ColorsViewState extends State<ColorsView> {
         stream: _colorsService.allColors(ownerUserId: userId),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
-            case ConnectionState.waiting:
             case ConnectionState.active:
               if (snapshot.hasData) {
                 final allColors = snapshot.data as Iterable<CloudColor>;
+
+                // determine the highest color index
+                final sortedColors = allColors.toList();
+                sortedColors.sort((a, b) => b.order.compareTo(a.order));
+                FirebaseCloudStorage().highestOrder = sortedColors[0].order;
+
                 if (allColors.isEmpty) {
                   return Column(
                     children: [
@@ -109,9 +114,16 @@ class _ColorsViewState extends State<ColorsView> {
                   );
                 }
               }
-              return const Text("Waiting for data to be added");
+
+              return Container(
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(),
+              );
             default:
-              return const CircularProgressIndicator();
+              return Container(
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(),
+              );
           }
         },
       ),
