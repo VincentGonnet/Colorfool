@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../constants/routes.dart';
 import '../../enums/menu_action.dart';
 import '../../utilities/dialogs/logout_dialog.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ColorsView extends StatefulWidget {
   const ColorsView({Key? key}) : super(key: key);
@@ -67,19 +68,46 @@ class _ColorsViewState extends State<ColorsView> {
             case ConnectionState.active:
               if (snapshot.hasData) {
                 final allColors = snapshot.data as Iterable<CloudColor>;
-                return ColorsListView(
-                  colors: allColors,
-                  onDeleteColor: (color) async {
-                    await _colorsService.deleteColor(
-                        documentId: color.documentId);
-                  },
-                  onTap: (color) {
-                    Navigator.of(context).pushNamed(
-                      createUpdateColorRoute,
-                      arguments: color,
-                    );
-                  },
-                );
+                if (allColors.isEmpty) {
+                  return Column(
+                    children: [
+                      const Spacer(flex: 4),
+                      Container(
+                        alignment: Alignment.center,
+                        margin: const EdgeInsetsDirectional.only(bottom: 10),
+                        child: Text(
+                          "Your color list is empty.",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 20,
+                            fontStyle: FontStyle.italic,
+                          )
+                        ),
+                      ),
+                      Text(
+                        "Press + to create your first color",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 20,
+                          fontStyle: FontStyle.italic,
+                        )
+                      ),
+                      const Spacer(flex: 6)
+                    ],
+                  );
+                } else {
+                  return ColorsListView(
+                    colors: allColors,
+                    onDeleteColor: (color) async {
+                      await _colorsService.deleteColor(
+                          documentId: color.documentId);
+                    },
+                    onTap: (color) {
+                      Navigator.of(context).pushNamed(
+                        createUpdateColorRoute,
+                        arguments: color,
+                      );
+                    },
+                  );
+                }
               }
               return const Text("Waiting for data to be added");
             default:
