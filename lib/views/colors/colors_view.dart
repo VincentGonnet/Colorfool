@@ -80,21 +80,17 @@ class _ColorsViewState extends State<ColorsView> {
                       Container(
                         alignment: Alignment.center,
                         margin: const EdgeInsetsDirectional.only(bottom: 10),
-                        child: Text(
-                          "Your color list is empty.",
+                        child: Text("Your color list is empty.",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 20,
+                              fontStyle: FontStyle.italic,
+                            )),
+                      ),
+                      Text("Press + to create your first color",
                           style: GoogleFonts.montserrat(
                             fontSize: 20,
                             fontStyle: FontStyle.italic,
-                          )
-                        ),
-                      ),
-                      Text(
-                        "Press + to create your first color",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontStyle: FontStyle.italic,
-                        )
-                      ),
+                          )),
                       const Spacer(flex: 6)
                     ],
                   );

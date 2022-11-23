@@ -1,6 +1,4 @@
-import 'package:colorfool/constants/routes.dart';
 import 'package:colorfool/services/auth/auth_exceptions.dart';
-import 'package:colorfool/services/auth/auth_service.dart';
 import 'package:colorfool/services/auth/bloc/auth_bloc.dart';
 import 'package:colorfool/services/auth/bloc/auth_state.dart';
 import 'package:colorfool/utilities/dialogs/error_dialog.dart';
@@ -42,23 +40,23 @@ class _RegisterViewState extends State<RegisterView> {
         if (state is AuthStateRegistering) {
           if (state.exception is WeakPasswordAuthException) {
             await showErrorDialog(
-                context,
-                "Weak Password",
+              context,
+              "Weak Password",
             );
           } else if (state.exception is EmailAlreadyInUseAuthException) {
             await showErrorDialog(
-                context,
-                "Email already in use",
+              context,
+              "Email already in use",
             );
           } else if (state.exception is GenericAuthException) {
             await showErrorDialog(
-                context,
-                "An error occurred.",
+              context,
+              "An error occurred.",
             );
           } else if (state.exception is InvalidEmailAuthException) {
             await showErrorDialog(
-                context,
-                "Invalid email/",
+              context,
+              "Invalid email/",
             );
           }
         }
@@ -115,19 +113,19 @@ class _RegisterViewState extends State<RegisterView> {
                   final email = _email.text;
                   final password = _password.text;
                   context.read<AuthBloc>().add(
-                    AuthEventRegister(
-                      email,
-                      password,
-                    ),
-                  );
+                        AuthEventRegister(
+                          email,
+                          password,
+                        ),
+                      );
                 },
                 child: const Text("Register"),
               ),
               TextButton(
                 onPressed: () {
                   context.read<AuthBloc>().add(
-                    const AuthEventLogOut(),
-                  );
+                        const AuthEventLogOut(),
+                      );
                 },
                 child: const Text("Already registered? Login here!"),
               ),
