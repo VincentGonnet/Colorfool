@@ -1,4 +1,5 @@
 import 'package:colorfool/services/cloud/cloud_color.dart';
+import 'package:colorfool/services/cloud/firebase_cloud_storage.dart';
 import 'package:colorfool/utilities/conversions/color_code.dart';
 import 'package:flutter/material.dart';
 
@@ -18,21 +19,41 @@ class ColorsListView extends StatelessWidget {
     required this.onTap,
   }) : super(key: key);
 
+  Widget proxyDecorator(Widget child, int index, Animation<double> animation) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (BuildContext context, Widget? child) {
+        return Material(
+          elevation: 0,
+          color: Colors.transparent,
+          child: child,
+        );
+      },
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: colors.length,
-      itemBuilder: (context, index) {
-        final color = colors.elementAt(index);
-        return Container(
-            padding: const EdgeInsets.all(5),
+    final colorList = colors.toList();
+    return Theme(
+      data: ThemeData(canvasColor: Colors.transparent),
+      child: ReorderableListView.builder(
+        itemCount: colorList.length,
+        proxyDecorator: proxyDecorator,
+        itemBuilder: (context, index) {
+          final color = colorList.elementAt(index);
+          return Container(
+            key: ValueKey(index),
+            margin: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: getColorFromFormattedCode(color.colorCode),
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: ListTile(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
               onTap: () {
                 onTap(color);
               },
-              tileColor: getColorFromFormattedCode(color.colorCode),
               trailing: IconButton(
                 icon: const Icon(
                   Icons.delete,
@@ -45,8 +66,18 @@ class ColorsListView extends StatelessWidget {
                   }
                 },
               ),
-            ));
-      },
+            ),
+          );
+        },
+        onReorder: (oldIndex, newIndex) {
+          if (oldIndex < newIndex) newIndex -= 1;
+          colorList.insert(newIndex, colorList.removeAt(oldIndex));
+          for (int pos = 0; pos < colorList.length; pos++) {
+            FirebaseCloudStorage()
+                .updateOrder(documentId: colorList[pos].documentId, order: pos);
+          }
+        },
+      ),
     );
   }
 }

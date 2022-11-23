@@ -16,14 +16,14 @@ class FirebaseCloudStorage {
     final document = await colors.add({
       ownerUserIdFieldName: ownerUserId,
       colorCodeFieldName: '',
-      orderFieldName: highestOrder+1,
+      orderFieldName: highestOrder + 1,
     });
     final fetchedColor = await document.get();
     return CloudColor(
       documentId: fetchedColor.id,
       ownerUserId: ownerUserId,
       colorCode: "",
-      order: highestOrder+1,
+      order: highestOrder + 1,
     );
   }
 
@@ -47,6 +47,15 @@ class FirebaseCloudStorage {
       {required String documentId, required String colorCode}) async {
     try {
       await colors.doc(documentId).update({colorCodeFieldName: colorCode});
+    } catch (_) {
+      throw CouldNotUpdateColorException();
+    }
+  }
+
+  Future<void> updateOrder(
+      {required String documentId, required int order}) async {
+    try {
+      await colors.doc(documentId).update({orderFieldName: order});
     } catch (_) {
       throw CouldNotUpdateColorException();
     }

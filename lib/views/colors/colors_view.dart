@@ -70,8 +70,12 @@ class _ColorsViewState extends State<ColorsView> {
 
                 // determine the highest color index
                 final sortedColors = allColors.toList();
-                sortedColors.sort((a, b) => b.order.compareTo(a.order));
-                FirebaseCloudStorage().highestOrder = sortedColors[0].order;
+                if (sortedColors.isEmpty) {
+                  FirebaseCloudStorage().highestOrder = 0;
+                } else {
+                  sortedColors.sort((a, b) => a.order.compareTo(b.order));
+                  FirebaseCloudStorage().highestOrder = sortedColors.last.order;
+                }
 
                 if (allColors.isEmpty) {
                   return Column(
@@ -96,7 +100,7 @@ class _ColorsViewState extends State<ColorsView> {
                   );
                 } else {
                   return ColorsListView(
-                    colors: allColors,
+                    colors: sortedColors,
                     onDeleteColor: (color) async {
                       await _colorsService.deleteColor(
                           documentId: color.documentId);
