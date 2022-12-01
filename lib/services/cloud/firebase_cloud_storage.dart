@@ -5,6 +5,7 @@ import 'package:colorfool/services/cloud/cloud_storage_exceptions.dart';
 
 class FirebaseCloudStorage {
   final colors = FirebaseFirestore.instance.collection('colors');
+  final batch = FirebaseFirestore.instance.batch();
   late int highestOrder;
 
   Stream<Iterable<CloudColor>> allColors({required String ownerUserId}) =>
@@ -54,8 +55,9 @@ class FirebaseCloudStorage {
 
   Future<void> updateOrder(
       {required String documentId, required int order}) async {
+    final batch = FirebaseFirestore.instance.batch();
     try {
-      await colors.doc(documentId).update({orderFieldName: order});
+      batch.update(colors.doc(documentId), {orderFieldName: order});
     } catch (_) {
       throw CouldNotUpdateColorException();
     }

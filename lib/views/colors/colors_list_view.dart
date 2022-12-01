@@ -3,6 +3,7 @@ import 'package:colorfool/services/cloud/firebase_cloud_storage.dart';
 import 'package:colorfool/utilities/conversions/color_code.dart';
 import 'package:flutter/material.dart';
 
+import '../../services/cloud/cloud_storage_constants.dart';
 import '../../utilities/dialogs/delete_dialog.dart';
 
 typedef ColorCallback = void Function(CloudColor color);
@@ -72,10 +73,11 @@ class ColorsListView extends StatelessWidget {
         onReorder: (oldIndex, newIndex) {
           if (oldIndex < newIndex) newIndex -= 1;
           colorList.insert(newIndex, colorList.removeAt(oldIndex));
+          final batch = FirebaseCloudStorage().batch;
           for (int pos = 0; pos < colorList.length; pos++) {
-            FirebaseCloudStorage()
-                .updateOrder(documentId: colorList[pos].documentId, order: pos);
+            batch.update(FirebaseCloudStorage().colors.doc(colorList[pos].documentId), {orderFieldName: pos});
           }
+          batch.commit();
         },
       ),
     );
