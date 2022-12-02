@@ -73,11 +73,7 @@ class ColorsListView extends StatelessWidget {
         onReorder: (oldIndex, newIndex) {
           if (oldIndex < newIndex) newIndex -= 1;
           colorList.insert(newIndex, colorList.removeAt(oldIndex));
-          final batch = FirebaseCloudStorage().batch;
-          for (int pos = 0; pos < colorList.length; pos++) {
-            batch.update(FirebaseCloudStorage().colors.doc(colorList[pos].documentId), {orderFieldName: pos});
-          }
-          batch.commit();
+          FirebaseCloudStorage().updateOrder(colorList: colorList);
         },
       ),
     );
