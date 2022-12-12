@@ -2,8 +2,6 @@ import 'package:colorfool/services/cloud/cloud_color.dart';
 import 'package:colorfool/services/cloud/firebase_cloud_storage.dart';
 import 'package:colorfool/utilities/conversions/color_code.dart';
 import 'package:flutter/material.dart';
-
-import '../../services/cloud/cloud_storage_constants.dart';
 import '../../utilities/dialogs/delete_dialog.dart';
 
 typedef ColorCallback = void Function(CloudColor color);
@@ -40,6 +38,8 @@ class ColorsListView extends StatelessWidget {
     return Theme(
       data: ThemeData(canvasColor: Colors.transparent),
       child: ReorderableListView.builder(
+        physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics()),
         itemCount: colorList.length,
         proxyDecorator: proxyDecorator,
         itemBuilder: (context, index) {
